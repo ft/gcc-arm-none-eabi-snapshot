@@ -1,0 +1,143 @@
+#!/usr/bin/make -f
+export DH_VERBOSE=1
+
+#MULTILIB_LIST="--with-multilib-list=armv6-m,armv7-m,armv7e-m,armv7-r"
+MULTILIB_LIST="--with-multilib-list=rmprofile"
+
+PACKAGE_GCC=gcc-arm-none-eabi-snapshot
+PACKAGE_GCC_SOURCE=$(PACKAGE_GCC)-source
+TARGET=arm-none-eabi
+TOP_DIR=$(shell pwd)
+
+DEB_VERSION := $(shell dpkg-parsechangelog | sed -ne "s/^Version: \(.*\)/\1/p")
+DEB_UPSTREAM_VERSION := $(shell echo $(DEB_VERSION) | cut -d ":" -f 2 | cut -d "-" -f 1)
+SVN_REVISION := $(shell echo $(DEB_VERSION) | grep -oP "svn\K([0-9]+)")
+GBP_DO_NOT_REMOVE_SRC_PREPEND_FOLDER=$(TOP_DIR)/../.do_not_remove_src_prepend_folder
+GCC_CHECKOUT_SOURCE_DIR=$(TOP_DIR)/../src
+GCC_BUILD_DIR=$(TOP_DIR)/build
+GCC_SOURCE_DIR=$(TOP_DIR)/src
+GCC_DEB_TMP_DIR=$(TOP_DIR)/debian/$(PACKAGE_GCC)-tmp
+GCC_DOC_TEXI_LEGEND_DIR=$(TOP_DIR)/../texi_legend.txt
+GCC_SOURCE_DEB_TMP_DIR=$(TOP_DIR)/debian/$(PACKAGE_GCC_SOURCE)-tmp
+
+export DEB_BUILD_MAINT_OPTIONS=hardening=-format
+BUILDFLAGS:=$(shell dpkg-buildflags --export=configure) INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"
+
+TARGET_TOOLS=\
+	AR_FOR_TARGET=$(TARGET)-ar \
+	AS_FOR_TARGET=$(TARGET)-as \
+	LD_FOR_TARGET=$(TARGET)-ld \
+	NM_FOR_TARGET=$(TARGET)-nm \
+	OBJDUMP_FOR_TARGET=$(TARGET)-objdump \
+	RANLIB_FOR_TARGET=$(TARGET)-ranlib \
+	READELF_FOR_TARGET=$(TARGET)-readelf \
+	STRIP_FOR_TARGET=$(TARGET)-strip
+
+CONFIGURE_GCC_FLAGS = \
+	--mandir=/usr/share/man \
+	--enable-languages=c,c++,lto \
+	--enable-multilib \
+	--disable-decimal-float \
+	--disable-libffi \
+	--disable-libgomp \
+	--disable-libmudflap \
+	--disable-libquadmath \
+	--disable-libssp \
+	--disable-libstdcxx-pch \
+	--disable-nls \
+	--disable-shared \
+	--disable-threads \
+	--disable-tls \
+	--build=$(DEB_BUILD_GNU_TYPE) \
+	--target=$(TARGET) \
+	--with-system-zlib \
+	--with-gnu-as \
+	--with-gnu-ld \
+	"--with-pkgversion=$(DEB_VERSION)" \
+	--without-included-gettext \
+	--prefix=/usr/lib \
+	--infodir=/usr/share/doc/$(PACKAGE_GCC)/info \
+	--htmldir=/usr/share/doc/$(PACKAGE_GCC)/html \
+	--pdfdir=/usr/share/doc/$(PACKAGE_GCC)/pdf \
+	--bindir=/usr/bin \
+	--libexecdir=/usr/lib \
+	--libdir=/usr/lib \
+	--disable-libstdc++-v3 \
+	--host=$(DEB_HOST_GNU_TYPE) \
+	--with-newlib \
+	$(MULTILIB_LIST) \
+	$(BUILDFLAGS) \
+	$(TARGET_TOOLS)
+
+%:
+	dh $@ -D$(GCC_SOURCE_DIR) -B$(GCC_BUILD_DIR) --with autotools-dev --parallel --with autoreconf
+
+override_dh_autoreconf:
+	autoreconf2.64 -f $(GCC_SOURCE_DIR)
+
+override_dh_auto_configure:
+	dh_auto_configure -D$(GCC_SOURCE_DIR) -B$(GCC_BUILD_DIR) -- $(CONFIGURE_GCC_FLAGS)
+
+override_dh_auto_install:
+	$(MAKE) install -C$(GCC_BUILD_DIR) DESTDIR=$(GCC_DEB_TMP_DIR)
+
+override_dh_auto_test:
+	@echo "no testing, that's way too painful"
+
+override_dh_clean:
+	rm -rf $(GCC_BUILD_DIR)
+	rm -rf $(GCC_DEB_TMP_DIR) $(GCC_SOURCE_DEB_TMP_DIR)
+	rm -rf 32 x32
+	dh_clean
+
+override_dh_auto_build:
+	dh_auto_build -B $(GCC_BUILD_DIR)
+
+override_dh_strip:
+	dh_strip -X.a
+
+override_dh_install:
+	dh_install -p$(PACKAGE_GCC) --sourcedir $(GCC_DEB_TMP_DIR)
+	mkdir -p $(GCC_SOURCE_DEB_TMP_DIR)/usr/src
+	tar -C $(TOP_DIR) -c --xz -f $(GCC_SOURCE_DEB_TMP_DIR)/usr/src/$(PACKAGE_GCC_SOURCE).tar.xz src
+	dh_install -p$(PACKAGE_GCC_SOURCE) --sourcedir $(GCC_SOURCE_DEB_TMP_DIR)
+
+override_dh_compress:
+	dh_compress -Xexamples/
+
+.PHONY: generate-orig-tarball
+generate-orig-tarball:
+	(cd src \
+	 && git archive --format=tar \
+	                --prefix="$(PACKAGE_GCC)_$(DEB_UPSTREAM_VERSION)/src/" HEAD \
+	 | xz -1 > ../../$(PACKAGE_GCC)_$(DEB_UPSTREAM_VERSION).orig.tar.xz;)
+
+#get-orig-source:
+#	svn co svn://gcc.gnu.org/svn/gcc/branches/ARM/embedded-5-branch@$(SVN_REVISION) $(GCC_CHECKOUT_SOURCE_DIR)
+#	echo "Please refer to the documentation of the gcc package" > $(GCC_DOC_TEXI_LEGEND_DIR)
+#	find $(GCC_CHECKOUT_SOURCE_DIR) -name "*.texi" -exec cp $(GCC_DOC_TEXI_LEGEND_DIR) \{\} \;
+#	touch $(GBP_DO_NOT_REMOVE_SRC_PREPEND_FOLDER)
+#	tar -C $(GCC_CHECKOUT_SOURCE_DIR)/.. -c --xz \
+#		--exclude=".svn" \
+#		--exclude="libffi" \
+#		--exclude="libgomp" \
+#		--exclude="libquadmath" \
+#		--exclude="libssp" \
+#		--exclude="libada" \
+#		--exclude="libgfortran" \
+#		--exclude="libcilkrts" \
+#		--exclude="libgo" \
+#		--exclude="libjava" \
+#		--exclude="zlib" \
+#		--exclude="gcc/testsuite/ada" \
+#		--exclude="gcc/testsuite/gfortran.dg" \
+#		--exclude="gcc/testsuite/gfortran.fortran-torture" \
+#		--exclude="gcc/testsuite/go.dg" \
+#		--exclude="gcc/testsuite/go.go-torture" \
+#		--exclude="gcc/testsuite/go.test" \
+#		--exclude="gcc/testsuite/objc" \
+#		--exclude="gcc/testsuite/obj-c++.dg" \
+#		--exclude="gcc/testsuite/objc.dg" \
+#		--exclude="gcc/testsuite/objc-obj-c++-shared" \
+#		-f ../$(PACKAGE_GCC)_$(DEB_UPSTREAM_VERSION).orig.tar.xz $(GCC_CHECKOUT_SOURCE_DIR) $(GBP_DO_NOT_REMOVE_SRC_PREPEND_FOLDER)
+#	svn revert --recursive $(GCC_CHECKOUT_SOURCE_DIR)

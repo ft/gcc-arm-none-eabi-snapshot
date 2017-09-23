@@ -1,0 +1,5 @@
+gcc-arm-none-eabi-snapshot (20170923-1) unstable; urgency=low
+
+  * Initial package based on debian's gcc-arm-none-eabi package.
+
+ -- Frank Terbeck <ft@bewatermyfriend.org>  Sat, 23 Oct 2017 23:04:14 +0200

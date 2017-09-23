@@ -1,0 +1,60 @@
+Source: gcc-arm-none-eabi-snapshot
+Section: devel
+Priority: extra
+Maintainer: Frank Terbeck <ft@bewatermyfriend.org>
+Build-Depends:
+ autoconf2.64,
+ autogen,
+ autotools-dev,
+ binutils-arm-none-eabi,
+ bison,
+ debhelper (>= 9.0.0),
+ dh-autoreconf,
+ dejagnu,
+ flex,
+ gawk,
+ gettext,
+ libgmp-dev,
+ libmpc-dev,
+ libmpfr-dev,
+ libnewlib-dev,
+ libtool,
+ locales,
+ lsb-release,
+ lzma,
+ m4,
+ patchutils,
+ sharutils,
+ texinfo,
+ xz-utils,
+ zlib1g-dev,
+ libisl-dev,
+ libcloog-isl-dev,
+ subversion,
+Standards-Version: 3.9.6
+Homepage: http://gcc.gnu.org/
+X-Python-Version: >= 2.7
+
+Package: gcc-arm-none-eabi-snapshot
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, binutils-arm-none-eabi
+Recommends: libnewlib-arm-none-eabi
+Conflicts: gcc-arm-none-eabi
+Replaces: gcc-arm-none-eabi
+Description: GCC cross compiler for ARM Cortex-A/R/M processors
+ Bare metal compiler for embedded ARM chips using Cortex-M, Cortex-R and
+ Cortex-A processors.
+ This package is based on the GNU ARM toolchain provided by ARM.
+
+Package: gcc-arm-none-eabi-snapshot-source
+Architecture: all
+Depends: ${misc:Depends}
+Conflicts: gcc-arm-none-eabi-source
+Replaces: gcc-arm-none-eabi-source
+Description: GCC cross compiler for ARM Cortex-A/R/M processors (source)
+ Bare metal compiler for embedded ARM chips using Cortex-M, Cortex-R and
+ Cortex-A processors.
+ This package is based on the GNU ARM toolchain provided by ARM.
+ .
+ This package contains the sources and patches which are needed
+ to build the GNU Compiler Collection (GCC) for embedded ARM chips.

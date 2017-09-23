@@ -1,0 +1,22 @@
+This is a Debian GNU/Linux packaged snapshot version of the GNU compiler,
+configured as a bare-metal ARM compiler for various ARM targets. The packaging
+itself is based off of the gcc-arm-none-eabi package by Keith Packard and
+Agustin Henze.
+
+The package is based on a snapshot of the project's git repository at
+
+  git://gcc.gnu.org/git/gcc.git
+
+which is covered by the GNU GPL.
+
+This copyright file covers only the packaging of the compiler and not the
+compiler itself. The copyright for GCC can be found in the copyright file of
+the gcc debian package.
+
+Copyright: GNU General Public License
+
+Copyright © 2013 Keith Packard
+Copyright © 2017 Frank Terbeck
+
+On Debian GNU/Linux systems, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL'.
