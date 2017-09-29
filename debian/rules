@@ -107,10 +107,12 @@ override_dh_compress:
 
 .PHONY: generate-orig-tarball
 generate-orig-tarball:
-	(cd src \
+	(set -x; pwd; f="../$(PACKAGE_GCC)_$(DEB_UPSTREAM_VERSION).orig.tar.xz"; \
+	 test -e "$$f" && exit 0; \
+	 cd src \
 	 && git archive --format=tar \
 	                --prefix="$(PACKAGE_GCC)_$(DEB_UPSTREAM_VERSION)/src/" HEAD \
-	 | xz -1 > ../../$(PACKAGE_GCC)_$(DEB_UPSTREAM_VERSION).orig.tar.xz;)
+	 | xz -9 > "../$$f";)
 
 #get-orig-source:
 #	svn co svn://gcc.gnu.org/svn/gcc/branches/ARM/embedded-5-branch@$(SVN_REVISION) $(GCC_CHECKOUT_SOURCE_DIR)
