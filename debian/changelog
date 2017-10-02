@@ -1,3 +1,9 @@
+gcc-arm-none-eabi-snapshot (20170923-2) unstable; urgency=medium
+
+  * Switch binutils dependency to gdb-binutils-arm-none-eabi-snapshot.
+
+ -- Frank Terbeck <ft@bewatermyfriend.org>  Mon, 02 Oct 2017 12:39:40 +0200
+
 gcc-arm-none-eabi-snapshot (20170923-1) unstable; urgency=low
 
   * Initial package based on debian's gcc-arm-none-eabi package.

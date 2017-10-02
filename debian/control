@@ -6,7 +6,7 @@ Build-Depends:
  autoconf2.64,
  autogen,
  autotools-dev,
- binutils-arm-none-eabi,
+ gdb-binutils-arm-none-eabi-snapshot,
  bison,
  debhelper (>= 9.0.0),
  dh-autoreconf,
@@ -37,7 +37,7 @@ X-Python-Version: >= 2.7
 
 Package: gcc-arm-none-eabi-snapshot
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, binutils-arm-none-eabi
+Depends: ${misc:Depends}, ${shlibs:Depends}, gdb-binutils-arm-none-eabi-snapshot
 Recommends: libnewlib-arm-none-eabi
 Conflicts: gcc-arm-none-eabi
 Replaces: gcc-arm-none-eabi
